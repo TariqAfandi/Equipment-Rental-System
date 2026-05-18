@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35931.197
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "rental_system_frontend", "rental_system_frontend.csproj", "{21C0D802-CE3F-4A02-A7CA-2064D20991FD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "rental_System_db", "..\rental_System_db\rental_System_db.csproj", "{30945BF7-D220-437D-8282-D14A86CD2B78}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{21C0D802-CE3F-4A02-A7CA-2064D20991FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{21C0D802-CE3F-4A02-A7CA-2064D20991FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{21C0D802-CE3F-4A02-A7CA-2064D20991FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{21C0D802-CE3F-4A02-A7CA-2064D20991FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{30945BF7-D220-437D-8282-D14A86CD2B78}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30945BF7-D220-437D-8282-D14A86CD2B78}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{30945BF7-D220-437D-8282-D14A86CD2B78}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{30945BF7-D220-437D-8282-D14A86CD2B78}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D29584A4-0C8D-4E81-A45F-CDEE7C42A21B}
+	EndGlobalSection
+EndGlobal

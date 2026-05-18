@@ -1,0 +1,91 @@
+﻿@model IEnumerable<rental_System_db.Entities.RentalRequest>
+@{
+    ViewData["Title"] = "My Rental Requests";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>My Rental Requests</h1>
+    <a asp-controller="Equipment" asp-action="Index" class="btn btn-primary">
+        <i class="fas fa-plus me-2"></i> New Request
+    </a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Equipment</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Total Cost</th>
+                        <th>Status</th>
+                        <th>Request Date</th>
+                        <th class="table-actions">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        @foreach (var request in Model)
+                        {
+                            <tr>
+                                <td>@request.Equipment?.Name</td>
+                                <td>@request.RentalStartDate.ToString("yyyy-MM-dd")</td>
+                                <td>@request.RentalEndDate.ToString("yyyy-MM-dd")</td>
+                                <td>@(request.TotalCost.HasValue ? $"${request.TotalCost.Value:F2}" : "-")</td>
+                                <td>
+                                    @switch (request.Status)
+                                    {
+                                        case "Pending":
+                                            <span class="badge bg-info">Pending</span>
+                                            break;
+                                        case "Approved":
+                                            <span class="badge bg-success">Approved</span>
+                                            break;
+                                        case "Rejected":
+                                            <span class="badge bg-danger">Rejected</span>
+                                            break;
+                                        case "Completed":
+                                            <span class="badge bg-secondary">Completed</span>
+                                            break;
+                                        case "Cancelled":
+                                            <span class="badge bg-warning">Cancelled</span>
+                                            break;
+                                        default:
+                                            <span class="badge bg-secondary">@request.Status</span>
+                                            break;
+                                    }
+                                </td>
+                                <td>@request.RequestDate.ToString("yyyy-MM-dd")</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a asp-action="Details" asp-route-id="@request.Id" class="btn btn-sm btn-outline-info">
+                                            <i class="fas fa-info-circle"></i> Details
+                                        </a>
+                                        @if (request.Status == "Pending")
+                                        {
+                                            <a asp-action="Edit" asp-route-id="@request.Id" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </a>
+                                            <a asp-action="Cancel" asp-route-id="@request.Id" class="btn btn-sm btn-outline-danger">
+                                                <i class="fas fa-times"></i> Cancel
+                                            </a>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center">You haven't made any rental requests yet.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

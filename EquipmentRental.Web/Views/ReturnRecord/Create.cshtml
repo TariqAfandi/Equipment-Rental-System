@@ -1,0 +1,228 @@
+﻿@model EquipmentRental.Web.Models.ViewModels.ProcessReturnViewModel
+@{
+    ViewData["Title"] = "Process Return";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Process Equipment Return</h1>
+        <a asp-controller="RentalTransaction" asp-action="Details" asp-route-id="@Model.RentalTransactionId" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i> Back to Rental
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Return Details</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        <input type="hidden" asp-for="RentalTransactionId" />
+                        <input type="hidden" asp-for="ProcessedByUserId" />
+                        <input type="hidden" asp-for="DepositAmount" id="DepositAmount" />
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="ReturnDate" class="form-label required"></label>
+                                    <input asp-for="ReturnDate" class="form-control" type="date" />
+                                    <span asp-validation-for="ReturnDate" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="ReturnCondition" class="form-label required"></label>
+                                    <select asp-for="ReturnCondition" class="form-select" onchange="toggleDamageFee()">
+                                        <option value="Good">Good</option>
+                                        <option value="Damaged">Damaged</option>
+                                        <option value="Lost">Lost</option>
+                                    </select>
+                                    <span asp-validation-for="ReturnCondition" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            @if (Model.LateFee > 0)
+                            {
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label asp-for="LateFee" class="form-label">Late Fee</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input asp-for="LateFee" class="form-control" type="number" step="0.01" readonly />
+                                        </div>
+                                        <small class="text-muted">Late fee is calculated automatically based on days overdue.</small>
+                                        <span asp-validation-for="LateFee" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <input type="hidden" asp-for="LateFee" value="0" />
+                            }
+
+                            <div class="col-md-6" id="damageFeeGroup" style="display: none;">
+                                <div class="mb-3">
+                                    <label asp-for="DamageFee" class="form-label">Damage Fee</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input asp-for="DamageFee" class="form-control" type="number" step="0.01" onchange="calculateRefundAmount()" />
+                                    </div>
+                                    <span asp-validation-for="DamageFee" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="RefundAmount" class="form-label">Refund Amount</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input asp-for="RefundAmount" class="form-control" type="number" step="0.01" readonly />
+                                    </div>
+                                    <small class="text-muted">Deposit minus any damage fees.</small>
+                                    <span asp-validation-for="RefundAmount" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label asp-for="Notes" class="form-label">Notes</label>
+                                    <textarea asp-for="Notes" class="form-control" rows="3"></textarea>
+                                    <span asp-validation-for="Notes" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-3">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-check-circle me-2"></i> Process Return
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Rental Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="text-center mb-3">
+                            @if (!string.IsNullOrEmpty(Model.EquipmentImageUrl))
+                            {
+                                <img src="@Model.EquipmentImageUrl" alt="@Model.EquipmentName" class="img-fluid rounded" style="max-height: 150px;">
+                            }
+                            else
+                            {
+                                <div class="bg-light d-flex align-items-center justify-content-center rounded" style="height: 150px;">
+                                    <i class="fas fa-tools fa-4x text-secondary"></i>
+                                </div>
+                            }
+                        </div>
+                        <h5 class="card-title">@Model.EquipmentName</h5>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Customer</label>
+                        <div>@Model.CustomerName</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Rental Period</label>
+                        <div>
+                            @Model.RentalStartDate.ToString("yyyy-MM-dd") to @Model.ExpectedReturnDate.ToString("yyyy-MM-dd")
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Deposit</label>
+                        <div class="h5 text-primary">$@Model.DepositAmount?.ToString("F2")</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Return Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Return Date</label>
+                        <div>@DateTime.Now.ToString("yyyy-MM-dd")</div>
+                    </div>
+
+                    @if (Model.LateFee > 0)
+                    {
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Late Fee</label>
+                            <div class="text-danger">$<span id="lateFeeDisplay">@Model.LateFee?.ToString("F2")</span></div>
+                        </div>
+                    }
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Damage Fee</label>
+                        <div class="text-danger">$<span id="damageFeeDisplay">0.00</span></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Refund Amount</label>
+                        <div class="text-success">$<span id="refundAmountDisplay">@Model.DepositAmount?.ToString("F2")</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        function toggleDamageFee() {
+            const returnConditionSelect = document.getElementById('ReturnCondition');
+            const damageFeeGroup = document.getElementById('damageFeeGroup');
+
+            if (returnConditionSelect.value === 'Damaged' || returnConditionSelect.value === 'Lost') {
+                damageFeeGroup.style.display = 'block';
+            } else {
+                damageFeeGroup.style.display = 'none';
+                document.getElementById('DamageFee').value = '0.00';
+            }
+
+            // Recalculate refund amount
+            calculateRefundAmount();
+        }
+
+        function calculateRefundAmount() {
+            const depositAmountInput = document.getElementById('DepositAmount');
+            const damageFeeInput = document.getElementById('DamageFee');
+            const refundAmountInput = document.getElementById('RefundAmount');
+            const refundAmountDisplay = document.getElementById('refundAmountDisplay');
+            const damageFeeDisplay = document.getElementById('damageFeeDisplay');
+
+            if (depositAmountInput && damageFeeInput && refundAmountInput && refundAmountDisplay) {
+                const depositAmount = parseFloat(depositAmountInput.value) || 0;
+                const damageFee = parseFloat(damageFeeInput.value) || 0;
+                const lateFee = parseFloat(document.getElementById('LateFee')?.value) || 0;
+
+                let refundAmount = depositAmount - damageFee;
+                if (refundAmount < 0) refundAmount = 0;
+
+                refundAmountInput.value = refundAmount.toFixed(2);
+                refundAmountDisplay.textContent = refundAmount.toFixed(2);
+                damageFeeDisplay.textContent = damageFee.toFixed(2);
+            }
+        }
+
+        // Run on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleDamageFee();
+        });
+    </script>
+}

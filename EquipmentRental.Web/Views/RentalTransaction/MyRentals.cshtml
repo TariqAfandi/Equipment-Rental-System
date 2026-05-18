@@ -1,0 +1,178 @@
+﻿@model IEnumerable<rental_System_db.Entities.RentalTransaction>
+@{
+    ViewData["Title"] = "My Rentals";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>My Rentals</h1>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Active Rentals</h5>
+        </div>
+        <div class="card-body">
+            @{
+                var activeRentals = Model.Where(t => t.Status == "Active" || t.Status == "Overdue").ToList();
+            }
+            @if (activeRentals.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Equipment</th>
+                                <th>Rental Date</th>
+                                <th>Due Date</th>
+                                <th>Rental Fee</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var rental in activeRentals)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            @if (!string.IsNullOrEmpty(rental.Equipment.ImageUrl))
+                                            {
+                                                <img src="@rental.Equipment.ImageUrl" alt="@rental.Equipment.Name" class="me-2" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">
+                                            }
+                                            else
+                                            {
+                                                <div class="me-2 bg-light d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 4px;">
+                                                    <i class="fas fa-tools text-secondary"></i>
+                                                </div>
+                                            }
+                                            <div>
+                                                <div class="fw-bold">@rental.Equipment.Name</div>
+                                                <div class="small text-muted">@rental.Equipment.Category.Name</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>@rental.ActualStartDate.ToString("yyyy-MM-dd")</td>
+                                    <td>
+                                        @if (rental.Status == "Overdue")
+                                        {
+                                            <span class="text-danger fw-bold">@rental.ExpectedReturnDate.ToString("yyyy-MM-dd")</span>
+                                        }
+                                        else
+                                        {
+                                            @rental.ExpectedReturnDate.ToString("yyyy-MM-dd")
+                                        }
+                                    </td>
+                                    <td>$@rental.RentalFee.ToString("F2")</td>
+                                    <td>
+                                        @if (rental.Status == "Overdue")
+                                        {
+                                            <span class="badge bg-danger">Overdue</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">Active</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <a asp-action="Details" asp-route-id="@rental.Id" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-info-circle me-1"></i> Details
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info mb-0">
+                    <i class="fas fa-info-circle me-2"></i> You don't have any active rentals.
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Rental History</h5>
+        </div>
+        <div class="card-body">
+            @{
+                var completedRentals = Model.Where(t => t.Status == "Completed").ToList();
+            }
+            @if (completedRentals.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Equipment</th>
+                                <th>Rental Date</th>
+                                <th>Return Date</th>
+                                <th>Rental Fee</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var rental in completedRentals)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            @if (!string.IsNullOrEmpty(rental.Equipment.ImageUrl))
+                                            {
+                                                <img src="@rental.Equipment.ImageUrl" alt="@rental.Equipment.Name" class="me-2" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">
+                                            }
+                                            else
+                                            {
+                                                <div class="me-2 bg-light d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 4px;">
+                                                    <i class="fas fa-tools text-secondary"></i>
+                                                </div>
+                                            }
+                                            <div>
+                                                <div class="fw-bold">@rental.Equipment.Name</div>
+                                                <div class="small text-muted">@rental.Equipment.Category.Name</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>@rental.ActualStartDate.ToString("yyyy-MM-dd")</td>
+                                    <td>@(rental.ActualReturnDate?.ToString("yyyy-MM-dd") ?? "-")</td>
+                                    <td>$@rental.RentalFee.ToString("F2")</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a asp-action="Details" asp-route-id="@rental.Id" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-info-circle me-1"></i> Details
+                                            </a>
+                                            @if (!Model.Any(f => f.Equipment.Id == rental.Equipment.Id && f.Id != rental.Id))
+                                            {
+                                                <a asp-controller="Feedback" asp-action="Create" asp-route-transactionId="@rental.Id" class="btn btn-sm btn-outline-secondary">
+                                                    <i class="fas fa-comments me-1"></i> Review
+                                                </a>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info mb-0">
+                    <i class="fas fa-info-circle me-2"></i> You don't have any rental history yet.
+                </div>
+            }
+        </div>
+    </div>
+</div>

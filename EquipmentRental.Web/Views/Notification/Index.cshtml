@@ -1,0 +1,77 @@
+﻿@model IEnumerable<rental_System_db.Entities.Notification>
+@{
+    ViewData["Title"] = "Notifications";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Notifications</h1>
+        <form asp-action="MarkAllAsRead" method="post">
+            <button type="submit" class="btn btn-outline-primary">
+                <i class="fas fa-check-double me-2"></i> Mark All as Read
+            </button>
+        </form>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Your Notifications</h5>
+            <span class="badge bg-primary">@(Model?.Count(n => !n.IsRead) ?? 0) unread</span>
+        </div>
+        <div class="card-body p-0">
+            @if (Model != null && Model.Any())
+            {
+                <div class="list-group list-group-flush">
+                    @foreach (var notification in Model)
+                    {
+                        <div class="list-group-item @(!notification.IsRead ? "bg-light" : "")">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">
+                                    @if (!notification.IsRead)
+                                    {
+                                        <span class="badge bg-primary me-2">New</span>
+                                    }
+                                    @notification.Title
+                                </h5>
+                                <small class="text-muted">@notification.CreatedAt.ToString("yyyy-MM-dd HH:mm")</small>
+                            </div>
+                            <p class="mb-1">@notification.Message</p>
+                            <div class="d-flex mt-2">
+                                <span class="badge bg-secondary me-2">@notification.Type</span>
+                                <div class="ms-auto">
+                                    @if (!notification.IsRead)
+                                    {
+                                        <form asp-action="MarkAsRead" asp-route-id="@notification.Id" method="post" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-check me-1"></i> Mark as Read
+                                            </button>
+                                        </form>
+                                    }
+                                    <a asp-action="Delete" asp-route-id="@notification.Id" class="btn btn-sm btn-outline-danger ms-2">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-bell-slash fa-4x text-muted mb-3"></i>
+                    <h5 class="text-muted">No notifications</h5>
+                    <p class="text-muted">You don't have any notifications at the moment.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

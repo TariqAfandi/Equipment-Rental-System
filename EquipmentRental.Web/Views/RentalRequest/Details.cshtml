@@ -1,0 +1,225 @@
+﻿@model rental_System_db.Entities.RentalRequest
+@{
+    ViewData["Title"] = "Request Details";
+    var isStaff = Context.Session.GetString("UserRole") == "Administrator" || Context.Session.GetString("UserRole") == "RentalManager";
+    var isCustomer = Model.UserId == Context.Session.GetInt32("UserId");
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Rental Request #@Model.Id</h1>
+    <div>
+        @if (isStaff && Model.Status == "Pending")
+        {
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
+                <i class="fas fa-edit me-2"></i> Process Request
+            </a>
+        }
+        else if (isCustomer && Model.Status == "Pending")
+        {
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
+                <i class="fas fa-edit me-2"></i> Edit
+            </a>
+            <a asp-action="Cancel" asp-route-id="@Model.Id" class="btn btn-danger">
+                <i class="fas fa-times me-2"></i> Cancel
+            </a>
+        }
+        <a asp-action="@(isStaff ? "Index" : "MyRequests")" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i> Back to @(isStaff ? "Requests" : "My Requests")
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Request Information</h5>
+                    <span class="badge @(Model.Status switch
+                                {
+                                    "Pending" => "bg-info",
+                                    "Approved" => "bg-success",
+                                    "Rejected" => "bg-danger",
+                                    "Completed" => "bg-secondary",
+                                    "Cancelled" => "bg-warning",
+                                    _ => "bg-secondary"
+                                })">@Model.Status</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-5">Request ID</dt>
+                            <dd class="col-sm-7">#@Model.Id</dd>
+                            
+                            <dt class="col-sm-5">Request Date</dt>
+                            <dd class="col-sm-7">@Model.RequestDate.ToString("yyyy-MM-dd HH:mm")</dd>
+                            
+                            <dt class="col-sm-5">Rental Period</dt>
+                            <dd class="col-sm-7">@Model.RentalStartDate.ToString("yyyy-MM-dd") to @Model.RentalEndDate.ToString("yyyy-MM-dd")</dd>
+                            
+                            <dt class="col-sm-5">Duration</dt>
+                            <dd class="col-sm-7">@((Model.RentalEndDate - Model.RentalStartDate).Days + 1) days</dd>
+                            
+                            <dt class="col-sm-5">Total Cost</dt>
+                            <dd class="col-sm-7">@(Model.TotalCost.HasValue ? $"${Model.TotalCost.Value:F2}" : "-")</dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-5">Equipment</dt>
+                            <dd class="col-sm-7">@Model.Equipment?.Name</dd>
+                            
+                            <dt class="col-sm-5">Category</dt>
+                            <dd class="col-sm-7">@Model.Equipment?.Category?.Name</dd>
+
+                            <dt class="col-sm-5">Daily Rate</dt>
+                            <dd class="col-sm-7">$@Model.Equipment?.RentalPrice.ToString("F2")</dd>
+
+                            @if (Model.ProcessedByUserId.HasValue)
+                            {
+                                <dt class="col-sm-5">Processed By</dt>
+                                <dd class="col-sm-7">@Model.ProcessedByUser?.Name</dd>
+
+                                <dt class="col-sm-5">Processed On</dt>
+                                <dd class="col-sm-7">@Model.ProcessedDate?.ToString("yyyy-MM-dd HH:mm")</dd>
+                            }
+                        </dl>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.Notes))
+                {
+                    <hr>
+                    <h6>Notes</h6>
+                    <p>@Model.Notes</p>
+                }
+
+                @if (isStaff && Model.Status == "Approved" && ViewBag.HasTransaction == false)
+                {
+                    <hr>
+                    <div class="alert alert-info">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-info-circle me-2"></i> This request has been approved and is ready for checkout.
+                            </div>
+                            <a asp-controller="RentalTransaction" asp-action="Create" asp-route-requestId="@Model.Id" class="btn btn-success">
+                                <i class="fas fa-check-circle me-2"></i> Process Checkout
+                            </a>
+                        </div>
+                    </div>
+                }
+                else if (ViewBag.HasTransaction == true)
+                {
+                    <hr>
+                    <div class="alert alert-success">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-check-circle me-2"></i> This request has been processed and a transaction has been created.
+                            </div>
+                            <a asp-controller="RentalTransaction" asp-action="Details" asp-route-id="@ViewBag.TransactionId" class="btn btn-primary">
+                                <i class="fas fa-exchange-alt me-2"></i> View Transaction
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">@(isStaff ? "Customer Information" : "Equipment Details")</h5>
+            </div>
+            <div class="card-body">
+                @if (isStaff)
+                {
+                    <div class="mb-3">
+                        <h6>@Model.User?.Name</h6>
+                        <p class="mb-1"><i class="fas fa-envelope me-2"></i> @Model.User?.Email</p>
+                        <p class="mb-0"><i class="fas fa-phone me-2"></i> @(string.IsNullOrEmpty(Model.User?.PhoneNumber) ? "Not provided" : Model.User?.PhoneNumber)</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center mb-3">
+                        @if (!string.IsNullOrEmpty(Model.Equipment?.ImageUrl))
+                        {
+                            <img src="@Model.Equipment?.ImageUrl" alt="@Model.Equipment?.Name" class="img-fluid" style="max-height: 150px;">
+                        }
+                        else
+                        {
+                            <div class="bg-light d-flex align-items-center justify-content-center py-4">
+                                <i class="fas fa-tools fa-4x text-secondary"></i>
+                            </div>
+                        }
+                    </div>
+
+                    <h5 class="text-center">@Model.Equipment?.Name</h5>
+                    <p class="text-center text-muted">@Model.Equipment?.Category?.Name</p>
+                }
+
+                <hr>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>Status</span>
+                    <span class="badge @(Model.Status switch
+                            {
+                                "Pending" => "bg-info",
+                                "Approved" => "bg-success",
+                                "Rejected" => "bg-danger",
+                                "Completed" => "bg-secondary",
+                                "Cancelled" => "bg-warning",
+                                _ => "bg-secondary"
+                            })">@Model.Status</span>
+                </div>
+
+                @if (Model.Status == "Rejected")
+                {
+                    <div class="alert alert-danger mt-3">
+                        <i class="fas fa-exclamation-circle me-2"></i> This request was rejected.
+                        @if (!string.IsNullOrEmpty(Model.Notes))
+                        {
+                            <p class="mb-0 mt-2"><strong>Reason:</strong> @Model.Notes</p>
+                        }
+                    </div>
+                }
+                else if (Model.Status == "Cancelled")
+                {
+                    <div class="alert alert-warning mt-3">
+                        <i class="fas fa-exclamation-triangle me-2"></i> This request was cancelled.
+                    </div>
+                }
+            </div>
+        </div>
+
+        @if (Model.Status == "Approved" || Model.Status == "Completed")
+        {
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Rental Information</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-7">Start Date</dt>
+                        <dd class="col-sm-5 text-end">@Model.RentalStartDate.ToString("yyyy-MM-dd")</dd>
+
+                        <dt class="col-sm-7">End Date</dt>
+                        <dd class="col-sm-5 text-end">@Model.RentalEndDate.ToString("yyyy-MM-dd")</dd>
+
+                        <dt class="col-sm-7">Duration</dt>
+                        <dd class="col-sm-5 text-end">@((Model.RentalEndDate - Model.RentalStartDate).Days + 1) days</dd>
+
+                        <dt class="col-sm-7">Daily Rate</dt>
+                        <dd class="col-sm-5 text-end">$@Model.Equipment?.RentalPrice.ToString("F2")</dd>
+
+                        <dt class="col-sm-7">Total Cost</dt>
+                        <dd class="col-sm-5 text-end">@(Model.TotalCost.HasValue ? $"${Model.TotalCost.Value:F2}" : "-")</dd>
+                    </dl>
+                </div>
+            </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,82 @@
+﻿@{
+    var userId = Context.Session.GetInt32("UserId");
+    var userRole = Context.Session.GetString("UserRole");
+    bool isLoggedIn = userId.HasValue;
+    bool isAdmin = userRole == "Administrator";
+    bool isManager = userRole == "RentalManager";
+    bool isStaff = isAdmin || isManager;
+}
+
+<div class="bg-dark text-white" id="sidebar-wrapper">
+    <div class="sidebar-heading border-bottom text-center py-4">
+        <h4 class="m-0">Equipment Rental</h4>
+    </div>
+    <div class="list-group list-group-flush">
+        <a asp-controller="Home" asp-action="Index" class="list-group-item list-group-item-action bg-dark text-white border-light py-3">
+            <i class="fas fa-home me-2"></i> Home
+        </a>
+
+        @if (isLoggedIn)
+        {
+            <a asp-controller="Home" asp-action="Dashboard" class="list-group-item list-group-item-action bg-dark text-white border-light py-3">
+                <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+            </a>
+
+            @if (isStaff)
+            {
+                <a asp-controller="Category" asp-action="Index" class="list-group-item list-group-item-action bg-dark text-white border-light py-3">
+                    <i class="fas fa-tags me-2"></i> Categories
+                </a>
+
+                <a asp-controller="Equipment" asp-action="Index" class="list-group-item list-group-item-action bg-dark text-white border-light py-3">
+                    <i class="fas fa-tools me-2"></i> Equipment
+                </a>
+
+                <a asp-controller="RentalRequest" asp-action="Index" class="list-group-item list-group-item-action bg-dark text-white border-light py-3">
+                    <i class="fas fa-clipboard-list me-2"></i> Rental Requests
+                </a>
+
+                <a asp-controller="RentalTransaction" asp-action="Index" class="list-group-item list-group-item-action bg-dark text-white border-light py-3">
+                    <i class="fas fa-exchange-alt me-2"></i> Transactions
+                </a>
+
+                <a asp-controller="ReturnRecord" asp-action="Index" class="list-group-item list-group-item-action bg-dark text-white border-light py-3">
+                    <i class="fas fa-undo me-2"></i> Returns
+                </a>
+
+                <a asp-controller="Feedback" asp-action="Manage" class="list-group-item list-group-item-action bg-dark text-white border-light py-3">
+                    <i class="fas fa-comments me-2"></i> Manage Feedback
+                </a>
+            }
+            else // Customer
+            {
+                <a asp-controller="Equipment" asp-action="Index" class="list-group-item list-group-item-action bg-dark text-white border-light py-3">
+                    <i class="fas fa-tools me-2"></i> Browse Equipment
+                </a>
+
+                <a asp-controller="RentalRequest" asp-action="MyRequests" class="list-group-item list-group-item-action bg-dark text-white border-light py-3">
+                    <i class="fas fa-clipboard-list me-2"></i> My Requests
+                </a>
+
+                <a asp-controller="RentalTransaction" asp-action="MyRentals" class="list-group-item list-group-item-action bg-dark text-white border-light py-3">
+                    <i class="fas fa-exchange-alt me-2"></i> My Rentals
+                </a>
+
+                <a asp-controller="Feedback" asp-action="Index" class="list-group-item list-group-item-action bg-dark text-white border-light py-3">
+                    <i class="fas fa-comments me-2"></i> Feedback
+                </a>
+            }
+
+            <a asp-controller="Notification" asp-action="Index" class="list-group-item list-group-item-action bg-dark text-white border-light py-3">
+                <i class="fas fa-bell me-2"></i> Notifications
+            </a>
+
+            @if (isAdmin)
+            {
+                <a asp-controller="Log" asp-action="Index" class="list-group-item list-group-item-action bg-dark text-white border-light py-3">
+                    <i class="fas fa-list-alt me-2"></i> System Logs
+                </a>
+            }
+        }
+    </div>
+</div>

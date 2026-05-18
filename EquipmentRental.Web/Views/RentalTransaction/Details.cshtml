@@ -1,0 +1,276 @@
+﻿@model rental_System_db.Entities.RentalTransaction
+@{
+    ViewData["Title"] = "Rental Details";
+    var isStaff = Context.Session.GetString("UserRole") == "Administrator" || Context.Session.GetString("UserRole") == "RentalManager";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Rental Transaction Details</h1>
+        <div>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i> Back to List
+            </a>
+            @if (isStaff && (Model.Status == "Active" || Model.Status == "Overdue"))
+            {
+                <a asp-controller="ReturnRecord" asp-action="Create" asp-route-id="@Model.Id" class="btn btn-success ms-2">
+                    <i class="fas fa-undo me-2"></i> Process Return
+                </a>
+            }
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Transaction Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Transaction ID</label>
+                                <div>#@Model.Id</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Transaction Date</label>
+                                <div>@Model.TransactionDate.ToString("yyyy-MM-dd HH:mm")</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Rental Start Date</label>
+                                <div>@Model.ActualStartDate.ToString("yyyy-MM-dd")</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Expected Return Date</label>
+                                <div>@Model.ExpectedReturnDate.ToString("yyyy-MM-dd")</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Actual Return Date</label>
+                                <div>@(Model.ActualReturnDate?.ToString("yyyy-MM-dd") ?? "Not returned yet")</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Status</label>
+                                <div>
+                                    <span class="badge status-@Model.Status">@Model.Status</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Rental Fee</label>
+                                <div class="h5 text-primary">$@Model.RentalFee.ToString("F2")</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Payment Status</label>
+                                <div>
+                                    <span class="badge @(Model.PaymentStatus == "Paid" ? "bg-success" : Model.PaymentStatus == "Overdue" ? "bg-danger" : "bg-warning")">
+                                        @Model.PaymentStatus
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.Notes))
+                    {
+                        <div class="mt-3">
+                            <label class="form-label fw-bold">Notes</label>
+                            <div class="p-3 bg-light rounded">@Model.Notes</div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            @if (Model.ReturnRecord != null)
+            {
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Return Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Return Date</label>
+                                    <div>@Model.ReturnRecord.ReturnDate.ToString("yyyy-MM-dd")</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Return Condition</label>
+                                    <div>
+                                        <span class="badge @(Model.ReturnRecord.ReturnCondition == "Good" ? "bg-success" : Model.ReturnRecord.ReturnCondition == "Damaged" ? "bg-warning" : "bg-danger")">
+                                            @Model.ReturnRecord.ReturnCondition
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            @if (Model.ReturnRecord.LateFee > 0)
+                            {
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Late Fee</label>
+                                        <div class="text-danger">$@Model.ReturnRecord.LateFee?.ToString("F2")</div>
+                                    </div>
+                                </div>
+                            }
+                            @if (Model.ReturnRecord.DamageFee > 0)
+                            {
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Damage Fee</label>
+                                        <div class="text-danger">$@Model.ReturnRecord.DamageFee?.ToString("F2")</div>
+                                    </div>
+                                </div>
+                            }
+                            @if (Model.ReturnRecord.RefundAmount > 0)
+                            {
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Refund Amount</label>
+                                        <div class="text-success">$@Model.ReturnRecord.RefundAmount?.ToString("F2")</div>
+                                    </div>
+                                </div>
+                            }
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Processed By</label>
+                                    <div>@Model.ReturnRecord.ProcessedByUser.Name</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(Model.ReturnRecord.Notes))
+                        {
+                            <div class="mt-3">
+                                <label class="form-label fw-bold">Return Notes</label>
+                                <div class="p-3 bg-light rounded">@Model.ReturnRecord.Notes</div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            @if (Model.Documents != null && Model.Documents.Any())
+            {
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">Documents</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group">
+                            @foreach (var document in Model.Documents)
+                            {
+                                <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <i class="fas @(document.FileType == "pdf" ? "fa-file-pdf" :
+                                                     document.FileType == "doc" || document.FileType == "docx" ? "fa-file-word" :
+                                                     document.FileType == "jpg" || document.FileType == "jpeg" || document.FileType == "png" ? "fa-file-image" :
+                                                     "fa-file") me-2 text-primary"></i>
+                                        <span class="fw-bold">@document.FileName</span>
+                                        <small class="text-muted d-block">Uploaded on @document.UploadDate.ToString("yyyy-MM-dd") by @document.User.Name</small>
+                                        @if (!string.IsNullOrEmpty(document.Description))
+                                        {
+                                            <small class="text-muted d-block">@document.Description</small>
+                                        }
+                                    </div>
+                                    <div class="btn-group" role="group">
+                                        <a href="@document.FilePath" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-download"></i>
+                                        </a>
+                                        @if (isStaff)
+                                        {
+                                            <a asp-action="DeleteDocument" asp-route-id="@document.Id" class="btn btn-sm btn-outline-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Equipment Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        @if (!string.IsNullOrEmpty(Model.Equipment.ImageUrl))
+                        {
+                            <img src="@Model.Equipment.ImageUrl" alt="@Model.Equipment.Name" class="img-fluid rounded" style="max-height: 200px;">
+                        }
+                        else
+                        {
+                            <div class="bg-light d-flex align-items-center justify-content-center rounded" style="height: 200px;">
+                                <i class="fas fa-tools fa-5x text-secondary"></i>
+                            </div>
+                        }
+                    </div>
+                    <h5 class="card-title">@Model.Equipment.Name</h5>
+                    <p class="text-muted mb-2">Category: @Model.Equipment.Category.Name</p>
+                    <p class="card-text">@Model.Equipment.Description</p>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <span class="h5 mb-0 text-primary">$@Model.Equipment.RentalPrice.ToString("F2") / day</span>
+                        <span class="badge status-@Model.Equipment.AvailabilityStatus">@Model.Equipment.AvailabilityStatus</span>
+                    </div>
+                </div>
+            </div>
+
+            @if (isStaff)
+            {
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0">Customer Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">@Model.User.Name</h5>
+                        <p class="text-muted">
+                            <i class="fas fa-envelope me-2"></i> @Model.User.Email
+                        </p>
+                        @if (!string.IsNullOrEmpty(Model.User.PhoneNumber))
+                        {
+                            <p class="text-muted">
+                                <i class="fas fa-phone me-2"></i> @Model.User.PhoneNumber
+                            </p>
+                        }
+                    </div>
+                </div>
+            }
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Rental Request Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Request ID</label>
+                        <div>#@Model.RentalRequest.Id</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Request Date</label>

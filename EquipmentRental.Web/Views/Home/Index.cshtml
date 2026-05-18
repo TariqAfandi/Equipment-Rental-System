@@ -1,0 +1,96 @@
+﻿@{
+    ViewData["Title"] = "Home";
+    var userId = Context.Session.GetInt32("UserId");
+    bool isLoggedIn = userId.HasValue;
+}
+
+@if (!isLoggedIn)
+{
+    <div class="text-center my-5">
+        <h1 class="display-4">Welcome to Equipment Rental System</h1>
+        <p class="lead">Rent the equipment you need, when you need it</p>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body text-center">
+                    <i class="fas fa-tools fa-3x mb-3 text-primary"></i>
+                    <h5 class="card-title">Wide Equipment Selection</h5>
+                    <p class="card-text">Browse our extensive catalog of equipment available for rent.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body text-center">
+                    <i class="fas fa-calendar-alt fa-3x mb-3 text-primary"></i>
+                    <h5 class="card-title">Flexible Rental Periods</h5>
+                    <p class="card-text">Rent equipment for as long as you need it with our flexible rental options.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body text-center">
+                    <i class="fas fa-user-shield fa-3x mb-3 text-primary"></i>
+                    <h5 class="card-title">Secure & Easy</h5>
+                    <p class="card-text">Our secure platform makes renting equipment quick and hassle-free.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6 offset-md-3 text-center">
+            <div class="mb-4">
+                <h4>Ready to get started?</h4>
+                <p>Create an account or login to start renting equipment.</p>
+            </div>
+            <div>
+                <a asp-controller="Account" asp-action="Register" class="btn btn-primary btn-lg me-2">Register</a>
+                <a asp-controller="Account" asp-action="Login" class="btn btn-outline-primary btn-lg">Login</a>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row mb-4">
+        <div class="col">
+            <h1>Welcome to Your Equipment Rental Portal</h1>
+            <p class="lead">Use the sidebar menu to navigate through your options.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Quick Actions</h5>
+                    <div class="list-group">
+                        <a asp-controller="Equipment" asp-action="Index" class="list-group-item list-group-item-action">
+                            <i class="fas fa-search me-2"></i> Browse Equipment
+                        </a>
+                        <a asp-controller="RentalRequest" asp-action="Create" class="list-group-item list-group-item-action">
+                            <i class="fas fa-plus me-2"></i> New Rental Request
+                        </a>
+                        <a asp-controller="Notification" asp-action="Index" class="list-group-item list-group-item-action">
+                            <i class="fas fa-bell me-2"></i> View Notifications
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Need Help?</h5>
+                    <p>If you have any questions or need assistance with our rental process, please don't hesitate to contact us.</p>
+                    <p><i class="fas fa-envelope me-2"></i> support@equipmentrental.com</p>
+                    <p><i class="fas fa-phone me-2"></i> (555) 123-4567</p>
+                </div>
+            </div>
+        </div>
+    </div>
+}

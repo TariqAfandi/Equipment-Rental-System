@@ -1,0 +1,162 @@
+﻿@model rental_System_db.Entities.Equipment
+@{
+    ViewData["Title"] = "Equipment Details";
+    var isStaff = Context.Session.GetString("UserRole") == "Administrator" || Context.Session.GetString("UserRole") == "RentalManager";
+    var isLoggedIn = Context.Session.GetInt32("UserId") != null;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Equipment Details</h1>
+    <div>
+        @if (isStaff)
+        {
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
+                <i class="fas fa-edit me-2"></i> Edit
+            </a>
+        }
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i> Back to List
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card shadow-sm mb-4">
+            @if (!string.IsNullOrEmpty(Model.ImageUrl))
+            {
+                <img src="@Model.ImageUrl" class="card-img-top" alt="@Model.Name">
+            }
+            else
+            {
+                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 300px;">
+                    <i class="fas fa-tools fa-6x text-secondary"></i>
+                </div>
+            }
+            <div class="card-body">
+                <h5 class="card-title">@Model.Name</h5>
+                <p class="card-text text-muted">@Model.Category?.Name</p>
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="h4 text-primary mb-0">$@Model.RentalPrice.ToString("F2")</span>
+                    <span class="badge status-@Model.AvailabilityStatus">@Model.AvailabilityStatus</span>
+                </div>
+
+                @if (isLoggedIn && Model.AvailabilityStatus == "Available")
+                {
+                    <a asp-controller="RentalRequest" asp-action="Create" asp-route-equipmentId="@Model.Id" class="btn btn-success w-100">
+                        <i class="fas fa-shopping-cart me-2"></i> Rent This Item
+                    </a>
+                }
+                else if (isLoggedIn && Model.AvailabilityStatus != "Available")
+                {
+                    <button class="btn btn-secondary w-100" disabled>
+                        <i class="fas fa-times-circle me-2"></i> Not Available
+                    </button>
+                }
+                else
+                {
+                    <a asp-controller="Account" asp-action="Login" class="btn btn-primary w-100">
+                        <i class="fas fa-sign-in-alt me-2"></i> Login to Rent
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Description</h5>
+            </div>
+            <div class="card-body">
+                <p>@Model.Description</p>
+
+                <hr>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Specifications</h6>
+                        <dl class="row">
+                            <dt class="col-sm-5">Category</dt>
+                            <dd class="col-sm-7">@Model.Category?.Name</dd>
+
+                            <dt class="col-sm-5">Condition</dt>
+                            <dd class="col-sm-7">@Model.ConditionStatus</dd>
+
+                            <dt class="col-sm-5">Deposit Required</dt>
+                            <dd class="col-sm-7">@(Model.DepositAmount.HasValue ? $"${Model.DepositAmount.Value:F2}" : "None")</dd>
+
+                            <dt class="col-sm-5">Last Maintenance</dt>
+                            <dd class="col-sm-7">@(Model.LastMaintenanceDate.HasValue ? Model.LastMaintenanceDate.Value.ToString("yyyy-MM-dd") : "Not recorded")</dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Rental Information</h6>
+                        <dl class="row">
+                            <dt class="col-sm-5">Daily Rate</dt>
+                            <dd class="col-sm-7">$@Model.RentalPrice.ToString("F2")</dd>
+
+                            <dt class="col-sm-5">Availability</dt>
+                            <dd class="col-sm-7">
+                                <span class="badge status-@Model.AvailabilityStatus">@Model.AvailabilityStatus</span>
+                            </dd>
+
+                            <dt class="col-sm-5">Added on</dt>
+                            <dd class="col-sm-7">@Model.CreatedAt.ToString("yyyy-MM-dd")</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customer Reviews Section -->
+        <div class="card shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Customer Reviews</h5>
+                @if (isLoggedIn)
+                {
+                    <a asp-controller="Feedback" asp-action="Create" asp-route-equipmentId="@Model.Id" class="btn btn-sm btn-primary">
+                        <i class="fas fa-comment me-2"></i> Write a Review
+                    </a>
+                }
+            </div>
+            <div class="card-body">
+                @if (Model.Feedbacks != null && Model.Feedbacks.Any(f => f.IsVisible))
+                {
+                    <div class="list-group list-group-flush">
+                        @foreach (var feedback in Model.Feedbacks.Where(f => f.IsVisible))
+                        {
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between">
+                                    <h6 class="mb-1">@feedback.User?.Name</h6>
+                                    <small class="text-muted">@feedback.FeedbackDate.ToString("yyyy-MM-dd")</small>
+                                </div>
+                                <div class="mb-2">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        if (i <= feedback.Rating)
+                                        {
+                                            <i class="fas fa-star text-warning"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="far fa-star text-warning"></i>
+                                        }
+                                    }
+                                </div>
+                                <p class="mb-1">@feedback.Comment</p>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <p class="text-muted mb-0">No reviews yet. Be the first to write one!</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

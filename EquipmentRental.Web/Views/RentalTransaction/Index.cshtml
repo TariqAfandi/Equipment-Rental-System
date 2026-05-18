@@ -1,0 +1,126 @@
+﻿@model IEnumerable<rental_System_db.Entities.RentalTransaction>
+@{
+    ViewData["Title"] = "Rental Transactions";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Rental Transactions</h1>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Filter Transactions</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" asp-action="Index">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Status</label>
+                        <select name="statusFilter" class="form-select" asp-items="ViewBag.StatusOptions">
+                            <option value="">All Statuses</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Search</label>
+                        <div class="input-group">
+                            <input type="text" name="searchString" class="form-control" placeholder="Search by customer or equipment..." value="@ViewBag.SearchString">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-filter me-2"></i> Apply Filters
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Customer</th>
+                            <th>Equipment</th>
+                            <th>Start Date</th>
+                            <th>Return Date</th>
+                            <th>Rental Fee</th>
+                            <th>Status</th>
+                            <th>Payment</th>
+                            <th class="table-actions">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            @foreach (var transaction in Model)
+                            {
+                                <tr>
+                                    <td>@transaction.Id</td>
+                                    <td>@transaction.User.Name</td>
+                                    <td>@transaction.Equipment.Name</td>
+                                    <td>@transaction.ActualStartDate.ToString("yyyy-MM-dd")</td>
+                                    <td>@transaction.ExpectedReturnDate.ToString("yyyy-MM-dd")</td>
+                                    <td>$@transaction.RentalFee.ToString("F2")</td>
+                                    <td>
+                                        <span class="badge status-@transaction.Status">@transaction.Status</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge @(transaction.PaymentStatus == "Paid" ? "bg-success" : transaction.PaymentStatus == "Overdue" ? "bg-danger" : "bg-warning")">
+                                            @transaction.PaymentStatus
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a asp-action="Details" asp-route-id="@transaction.Id" class="btn btn-sm btn-outline-info">
+                                                <i class="fas fa-info-circle"></i>
+                                            </a>
+                                            @if (transaction.Status == "Active" || transaction.Status == "Overdue")
+                                            {
+                                                <a asp-controller="ReturnRecord" asp-action="Create" asp-route-id="@transaction.Id" class="btn btn-sm btn-outline-success">
+                                                    <i class="fas fa-undo"></i> Return
+                                                </a>
+                                            }
+                                            <a asp-action="UploadDocument" asp-route-id="@transaction.Id" class="btn btn-sm btn-outline-secondary">
+                                                <i class="fas fa-file-upload"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="9" class="text-center">No transactions found.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

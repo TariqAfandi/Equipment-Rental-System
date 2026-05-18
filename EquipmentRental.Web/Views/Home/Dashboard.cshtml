@@ -1,0 +1,250 @@
+﻿@using Microsoft.AspNetCore.Http
+@{
+    ViewData["Title"] = "Dashboard";
+    var userRole = Context.Session.GetString("UserRole");
+    bool isStaff = userRole == "Administrator" || userRole == "RentalManager";
+}
+
+<div class="container-fluid py-4">
+    <h1 class="mb-4">
+        @(
+            isStaff
+            ? "Management Dashboard"
+            : "My Dashboard"
+            )
+    </h1>
+
+    @if (isStaff)
+    {
+        <div class="row mb-4">
+            <!-- Total Equipment -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card dashboard-card border-left-primary shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                    Total Equipment
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    @ViewBag.TotalEquipment
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-tools fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Categories -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card dashboard-card border-left-success shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                    Categories
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    @ViewBag.TotalCategories
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-tags fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Pending Requests -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card dashboard-card border-left-info shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                    Pending Requests
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    @ViewBag.PendingRequests
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Active Rentals -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card dashboard-card border-left-warning shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                    Active Rentals
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    @ViewBag.ActiveRentals
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-exchange-alt fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Staff panels -->
+        <div class="row mb-4">
+            <!-- Rentals Card -->
+            <div class="col-xl-6">
+                <div class="card shadow mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Rental Requests</h6>
+                        <a asp-controller="RentalRequest" asp-action="Index" class="btn btn-sm btn-primary">View All</a>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-warning">
+                            <strong>@ViewBag.PendingRequests</strong> pending requests require your attention.
+                        </div>
+                        <div class="alert alert-danger">
+                            <strong>@ViewBag.OverdueRentals</strong> rentals are currently overdue.
+                        </div>
+                        <a asp-controller="RentalRequest" asp-action="Index" class="btn btn-outline-primary">
+                            Manage Requests
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <!-- Equipment Status Card -->
+            <div class="col-xl-6">
+                <div class="card shadow mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Equipment Status</h6>
+                        <a asp-controller="Equipment" asp-action="Index" class="btn btn-sm btn-primary">View All</a>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h4 class="small font-weight-bold">
+                                    Available Equipment
+                                    <span class="float-end">@ViewBag.TotalEquipment</span>
+                                </h4>
+                                <div class="progress mb-4">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width:100%"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h4 class="small font-weight-bold">
+                                    Rented Equipment
+                                    <span class="float-end">@ViewBag.ActiveRentals</span>
+                                </h4>
+                                <div class="progress mb-4">
+                                    @{
+                                        var pct = ViewBag.TotalEquipment > 0
+                                        ? (int)((float)ViewBag.ActiveRentals / ViewBag.TotalEquipment * 100)
+                                        : 0;
+                                    }
+                                    <div class="progress-bar bg-warning" role="progressbar" style="width:@pct%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <a asp-controller="Equipment" asp-action="Index" class="btn btn-outline-primary">
+                            Manage Equipment
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Customer panels -->
+        <div class="row mb-4">
+            <div class="col-xl-4 col-md-6 mb-4">
+                <div class="card shadow h-100 py-2 border-left-primary">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                    My Requests
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    @ViewBag.MyRequests
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-4 col-md-6 mb-4">
+                <div class="card shadow h-100 py-2 border-left-info">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                    Pending Requests
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    @ViewBag.MyPendingRequests
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-clock fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-4 col-md-6 mb-4">
+                <div class="card shadow h-100 py-2 border-left-success">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                    Active Rentals
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    @ViewBag.MyActiveRentals
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-exchange-alt fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick actions -->
+        <div class="row">
+            <div class="col-xl-6 mb-4">
+                <div class="card shadow">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+                    </div>
+                    <div class="card-body">
+                        <a asp-controller="Equipment" asp-action="Index" class="btn btn-primary w-100 mb-2">
+                            <i class="fas fa-search me-2"></i> Browse Equipment
+                        </a>
+                        <a asp-controller="RentalRequest" asp-action="Create" class="btn btn-success w-100 mb-2">
+                            <i class="fas fa-plus me-2"></i> Create New Request
+                        </a>
+                        <a asp-controller="RentalRequest" asp-action="MyRequests" class="btn btn-info w-100">
+                            <i class="fas fa-list me-2"></i> View My Requests
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
